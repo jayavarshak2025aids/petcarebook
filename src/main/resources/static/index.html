@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawCare - Pet Vaccination Reminder</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 245px;
+            background: #172554;
+            color: white;
+            padding: 25px 15px;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: bold;
+            padding: 0 15px 30px;
+        }
+
+        .logo span {
+            color: #93c5fd;
+        }
+
+        .nav-btn {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: #dbeafe;
+            text-align: left;
+            padding: 14px 15px;
+            margin-bottom: 7px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .nav-btn:hover,
+        .nav-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* MAIN */
+        .main {
+            margin-left: 245px;
+            width: calc(100% - 245px);
+        }
+
+        .topbar {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar h1 {
+            font-size: 24px;
+        }
+
+        .topbar p {
+            color: #6b7280;
+            margin-top: 4px;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        /* CARDS */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 22px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .number {
+            font-size: 30px;
+            font-weight: bold;
+            color: #172554;
+        }
+
+        /* SECTIONS */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #172554;
+        }
+
+        /* FORMS */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input,
+        select {
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #2563eb;
+        }
+
+        .btn {
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        /* TABLE */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+        th {
+            background: #eff6ff;
+            color: #172554;
+        }
+
+        /* REMINDER */
+        .reminder {
+            border-left: 5px solid #f59e0b;
+            background: #fffbeb;
+            padding: 18px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+        }
+
+        .reminder strong {
+            color: #92400e;
+        }
+
+        .empty {
+            text-align: center;
+            color: #6b7280;
+            padding: 25px;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* DASHBOARD GRID */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1000px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .app {
+                display: block;
+            }
+
+            .main {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">🐾 Paw<span>Care</span></div>
+
+        <button class="nav-btn active" onclick="showPage('dashboard', this)">
+            🏠 Dashboard
+        </button>
+
+        <button class="nav-btn" onclick="showPage('owners', this)">
+            👤 Owners
+        </button>
+
+        <button class="nav-btn" onclick="showPage('pets', this)">
+            🐶 Pets
+        </button>
+
+        <button class="nav-btn" onclick="showPage('vaccines', this)">
+            💉 Vaccine Types
+        </button>
+
+        <button class="nav-btn" onclick="showPage('vaccinations', this)">
+            📋 Vaccinations
+        </button>
+
+        <button class="nav-btn" onclick="showPage('reminders', this)">
+            🔔 Due Reminders
+        </button>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <header class="topbar">
+            <div>
+                <h1 id="pageTitle">Dashboard</h1>
+                <p>Pet Vaccination Reminder System</p>
+            </div>
+
+            <div>
+                🐾 Welcome to PawCare
+            </div>
+        </header>
+
+        <section class="content">
+
+            <!-- DASHBOARD -->
+            <div id="dashboard" class="page active">
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3>Total Owners</h3>
+                        <div class="number" id="ownerCount">0</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Total Pets</h3>
+                        <div class="number" id="petCount">0</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Vaccine Types</h3>
+                        <div class="number" id="vaccineCount">0</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Due in 7 Days</h3>
+                        <div class="number" id="dueCount">0</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+
+                    <div class="card">
+                        <h2>Upcoming Vaccinations</h2>
+                        <div id="dashboardReminders"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Quick Actions</h2>
+
+                        <button class="btn" onclick="openPage('owners')">
+                            + Register Owner
+                        </button>
+
+                        <br>
+
+                        <button class="btn" onclick="openPage('pets')">
+                            + Register Pet
+                        </button>
+
+                        <br>
+
+                        <button class="btn" onclick="openPage('vaccinations')">
+                            + Add Vaccination
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- OWNERS -->
+            <div id="owners" class="page">
+
+                <div class="card">
+                    <h2>Register Owner</h2>
+
+                    <form id="ownerForm">
+
+                        <div class="form-grid">
+
+                            <div class="form-group">
+                                <label>Owner Name</label>
+                                <input type="text" id="ownerName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="ownerEmail" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="text" id="ownerPhone" required>
+                            </div>
+
+                        </div>
+
+                        <button class="btn" type="submit">
+                            Register Owner
+                        </button>
+
+                    </form>
+
+                    <div id="ownerMessage" class="message"></div>
+                </div>
+
+                <div class="card">
+                    <h2>Owner List</h2>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                            </tr>
+                            </thead>
+
+                            <tbody id="ownerTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PETS -->
+            <div id="pets" class="page">
+
+                <div class="card">
+                    <h2>Register Pet</h2>
+
+                    <form id="petForm">
+
+                        <div class="form-grid">
+
+                            <div class="form-group">
+                                <label>Pet Name</label>
+                                <input type="text" id="petName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Species</label>
+                                <select id="petSpecies" required>
+                                    <option value="">Select Species</option>
+                                    <option value="Dog">Dog</option>
+                                    <option value="Cat">Cat</option>
+                                    <option value="Rabbit">Rabbit</option>
+                                    <option value="Bird">Bird</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Breed</label>
+                                <input type="text" id="petBreed" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <input type="date" id="petDob" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Owner</label>
+                                <select id="petOwner" required>
+                                    <option value="">Select Owner</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <button class="btn" type="submit">
+                            Register Pet
+                        </button>
+
+                    </form>
+
+                    <div id="petMessage" class="message"></div>
+                </div>
+
+                <div class="card">
+                    <h2>Pet List</h2>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Species</th>
+                                <th>Breed</th>
+                                <th>Date of Birth</th>
+                                <th>Owner</th>
+                            </tr>
+                            </thead>
+
+                            <tbody id="petTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- VACCINES -->
+            <div id="vaccines" class="page">
+
+                <div class="card">
+                    <h2>Add Vaccine Type</h2>
+
+                    <form id="vaccineForm">
+
+                        <div class="form-grid">
+
+                            <div class="form-group">
+                                <label>Vaccine Name</label>
+                                <input type="text" id="vaccineName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Interval (Days)</label>
+                                <input type="number" id="intervalDays" min="1" required>
+                            </div>
+
+                        </div>
+
+                        <button class="btn" type="submit">
+                            Add Vaccine
+                        </button>
+
+                    </form>
+
+                    <div id="vaccineMessage" class="message"></div>
+                </div>
+
+                <div class="card">
+                    <h2>Vaccine Types</h2>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Vaccine Name</th>
+                                <th>Interval Days</th>
+                            </tr>
+                            </thead>
+
+                            <tbody id="vaccineTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- VACCINATIONS -->
+            <div id="vaccinations" class="page">
+
+                <div class="card">
+                    <h2>Log Vaccination</h2>
+
+                    <form id="vaccinationForm">
+
+                        <div class="form-grid">
+
+                            <div class="form-group">
+                                <label>Pet</label>
+                                <select id="vaccinationPet" required>
+                                    <option value="">Select Pet</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Vaccine Type</label>
+                                <select id="vaccinationVaccine" required>
+                                    <option value="">Select Vaccine</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Given Date</label>
+                                <input type="date" id="givenDate" required>
+                            </div>
+
+                        </div>
+
+                        <button class="btn" type="submit">
+                            Save Vaccination
+                        </button>
+
+                    </form>
+
+                    <div id="vaccinationMessage" class="message"></div>
+                </div>
+
+                <div class="card">
+                    <h2>Vaccination History</h2>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Pet</th>
+                                <th>Vaccine</th>
+                                <th>Given Date</th>
+                                <th>Next Due Date</th>
+                            </tr>
+                            </thead>
+
+                            <tbody id="vaccinationTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- REMINDERS -->
+            <div id="reminders" class="page">
+
+                <div class="card">
+                    <h2>Vaccinations Due Within 7 Days</h2>
+
+                    <div id="reminderList"></div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+</div>
+
+
+<script>
+
+    let owners = [];
+    let pets = [];
+    let vaccines = [];
+    let vaccinations = [];
+    let dueVaccinations = [];
+
+    /* =========================
+       NAVIGATION
+    ========================= */
+
+    function showPage(pageId, button) {
+
+        document.querySelectorAll(".page").forEach(page => {
+            page.classList.remove("active");
+        });
+
+        document.getElementById(pageId).classList.add("active");
+
+        document.querySelectorAll(".nav-btn").forEach(btn => {
+            btn.classList.remove("active");
+        });
+
+        if (button) {
+            button.classList.add("active");
+        }
+
+        const titles = {
+            dashboard: "Dashboard",
+            owners: "Owners",
+            pets: "Pets",
+            vaccines: "Vaccine Types",
+            vaccinations: "Vaccinations",
+            reminders: "Due Reminders"
+        };
+
+        document.getElementById("pageTitle").textContent =
+            titles[pageId];
+    }
+
+
+    function openPage(pageId) {
+
+        document.querySelectorAll(".nav-btn").forEach(btn => {
+            btn.classList.remove("active");
+
+            if (btn.textContent.toLowerCase().includes(
+                pageId === "vaccines" ? "vaccine types" :
+                    pageId === "vaccinations" ? "vaccinations" :
+                        pageId
+            )) {
+                btn.classList.add("active");
+            }
+        });
+
+        showPage(pageId);
+    }
+
+
+    /* =========================
+       MESSAGE
+    ========================= */
+
+    function showMessage(elementId, message, type) {
+
+        const element = document.getElementById(elementId);
+
+        element.textContent = message;
+        element.className = "message " + type;
+        element.style.display = "block";
+
+        setTimeout(() => {
+            element.style.display = "none";
+        }, 4000);
+    }
+
+
+    /* =========================
+       LOAD ALL DATA
+    ========================= */
+
+    async function loadData() {
+
+        try {
+
+            const [
+                ownerResponse,
+                petResponse,
+                vaccineResponse,
+                vaccinationResponse,
+                dueResponse
+            ] = await Promise.all([
+                fetch("/owners"),
+                fetch("/pets"),
+                fetch("/vaccine-types"),
+                fetch("/vaccinations"),
+                fetch("/vaccinations/due")
+            ]);
+
+            owners = await ownerResponse.json();
+            pets = await petResponse.json();
+            vaccines = await vaccineResponse.json();
+            vaccinations = await vaccinationResponse.json();
+            dueVaccinations = await dueResponse.json();
+
+            updateDashboard();
+            renderOwners();
+            renderPets();
+            renderVaccines();
+            renderVaccinations();
+            renderReminders();
+            populateDropdowns();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Unable to load data. Make sure Spring Boot is running.");
+        }
+    }
+
+
+    /* =========================
+       DASHBOARD
+    ========================= */
+
+    function updateDashboard() {
+
+        document.getElementById("ownerCount").textContent =
+            owners.length;
+
+        document.getElementById("petCount").textContent =
+            pets.length;
+
+        document.getElementById("vaccineCount").textContent =
+            vaccines.length;
+
+        document.getElementById("dueCount").textContent =
+            dueVaccinations.length;
+
+        const container =
+            document.getElementById("dashboardReminders");
+
+        if (dueVaccinations.length === 0) {
+
+            container.innerHTML =
+                '<div class="empty">No vaccinations due within 7 days.</div>';
+
+            return;
+        }
+
+        container.innerHTML = "";
+
+        dueVaccinations.forEach(record => {
+
+            const div = document.createElement("div");
+
+            div.className = "reminder";
+
+            div.innerHTML = `
+                <strong>${record.pet?.name || "Unknown Pet"}</strong><br>
+                Vaccine: ${record.vaccineType?.name || "Unknown"}<br>
+                Due Date: ${record.nextDueDate}
+            `;
+
+            container.appendChild(div);
+        });
+    }
+
+
+    /* =========================
+       OWNERS
+    ========================= */
+
+    function renderOwners() {
+
+        const table = document.getElementById("ownerTable");
+
+        table.innerHTML = "";
+
+        if (owners.length === 0) {
+
+            table.innerHTML =
+                '<tr><td colspan="4" class="empty">No owners found.</td></tr>';
+
+            return;
+        }
+
+        owners.forEach(owner => {
+
+            table.innerHTML += `
+                <tr>
+                    <td>${owner.id}</td>
+                    <td>${owner.name}</td>
+                    <td>${owner.email}</td>
+                    <td>${owner.phone}</td>
+                </tr>
+            `;
+        });
+    }
+
+
+    document.getElementById("ownerForm")
+        .addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const data = {
+
+                name: document.getElementById("ownerName").value,
+                email: document.getElementById("ownerEmail").value,
+                phone: document.getElementById("ownerPhone").value
+
+            };
+
+            try {
+
+                const response =
+                    await fetch("/owners", {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify(data)
+
+                    });
+
+                if (!response.ok) {
+
+                    throw new Error("Failed to create owner");
+                }
+
+                document.getElementById("ownerForm").reset();
+
+                showMessage(
+                    "ownerMessage",
+                    "Owner registered successfully!",
+                    "success"
+                );
+
+                await loadData();
+
+            } catch (error) {
+
+                showMessage(
+                    "ownerMessage",
+                    error.message,
+                    "error"
+                );
+            }
+
+        });
+
+
+    /* =========================
+       PETS
+    ========================= */
+
+    function renderPets() {
+
+        const table = document.getElementById("petTable");
+
+        table.innerHTML = "";
+
+        if (pets.length === 0) {
+
+            table.innerHTML =
+                '<tr><td colspan="6" class="empty">No pets found.</td></tr>';
+
+            return;
+        }
+
+        pets.forEach(pet => {
+
+            table.innerHTML += `
+                <tr>
+                    <td>${pet.id}</td>
+                    <td>${pet.name}</td>
+                    <td>${pet.species}</td>
+                    <td>${pet.breed}</td>
+                    <td>${pet.dateOfBirth}</td>
+                    <td>${pet.owner?.name || "Unknown"}</td>
+                </tr>
+            `;
+        });
+    }
+
+
+    document.getElementById("petForm")
+        .addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const ownerId =
+                Number(document.getElementById("petOwner").value);
+
+            const data = {
+
+                name: document.getElementById("petName").value,
+                species: document.getElementById("petSpecies").value,
+                breed: document.getElementById("petBreed").value,
+                dateOfBirth: document.getElementById("petDob").value,
+
+                owner: {
+                    id: ownerId
+                }
+
+            };
+
+            try {
+
+                const response =
+                    await fetch("/pets", {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify(data)
+
+                    });
+
+                if (!response.ok) {
+
+                    throw new Error("Failed to register pet");
+                }
+
+                document.getElementById("petForm").reset();
+
+                showMessage(
+                    "petMessage",
+                    "Pet registered successfully!",
+                    "success"
+                );
+
+                await loadData();
+
+            } catch (error) {
+
+                showMessage(
+                    "petMessage",
+                    error.message,
+                    "error"
+                );
+            }
+
+        });
+
+
+    /* =========================
+       VACCINES
+    ========================= */
+
+    function renderVaccines() {
+
+        const table = document.getElementById("vaccineTable");
+
+        table.innerHTML = "";
+
+        if (vaccines.length === 0) {
+
+            table.innerHTML =
+                '<tr><td colspan="3" class="empty">No vaccine types found.</td></tr>';
+
+            return;
+        }
+
+        vaccines.forEach(vaccine => {
+
+            table.innerHTML += `
+                <tr>
+                    <td>${vaccine.id}</td>
+                    <td>${vaccine.name}</td>
+                    <td>${vaccine.intervalDays}</td>
+                </tr>
+            `;
+        });
+    }
+
+
+    document.getElementById("vaccineForm")
+        .addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const data = {
+
+                name: document.getElementById("vaccineName").value,
+
+                intervalDays:
+                    Number(document.getElementById("intervalDays").value)
+
+            };
+
+            try {
+
+                const response =
+                    await fetch("/vaccine-types", {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify(data)
+
+                    });
+
+                if (!response.ok) {
+
+                    throw new Error("Failed to add vaccine type");
+                }
+
+                document.getElementById("vaccineForm").reset();
+
+                showMessage(
+                    "vaccineMessage",
+                    "Vaccine type added successfully!",
+                    "success"
+                );
+
+                await loadData();
+
+            } catch (error) {
+
+                showMessage(
+                    "vaccineMessage",
+                    error.message,
+                    "error"
+                );
+            }
+
+        });
+
+
+    /* =========================
+       VACCINATIONS
+    ========================= */
+
+    function renderVaccinations() {
+
+        const table =
+            document.getElementById("vaccinationTable");
+
+        table.innerHTML = "";
+
+        if (vaccinations.length === 0) {
+
+            table.innerHTML =
+                '<tr><td colspan="5" class="empty">No vaccination records found.</td></tr>';
+
+            return;
+        }
+
+        vaccinations.forEach(record => {
+
+            table.innerHTML += `
+                <tr>
+                    <td>${record.id}</td>
+                    <td>${record.pet?.name || "Unknown"}</td>
+                    <td>${record.vaccineType?.name || "Unknown"}</td>
+                    <td>${record.givenDate}</td>
+                    <td>${record.nextDueDate}</td>
+                </tr>
+            `;
+        });
+    }
+
+
+    document.getElementById("vaccinationForm")
+        .addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const givenDate =
+                document.getElementById("givenDate").value;
+
+            const today =
+                new Date().toISOString().split("T")[0];
+
+            if (givenDate > today) {
+
+                showMessage(
+                    "vaccinationMessage",
+                    "Vaccination date cannot be in the future.",
+                    "error"
+                );
+
+                return;
+            }
+
+            const petId =
+                Number(document.getElementById("vaccinationPet").value);
+
+            const vaccineId =
+                Number(document.getElementById("vaccinationVaccine").value);
+
+            const data = {
+
+                givenDate: givenDate,
+
+                pet: {
+                    id: petId
+                },
+
+                vaccineType: {
+                    id: vaccineId
+                }
+
+            };
+
+            try {
+
+                const response =
+                    await fetch("/vaccinations", {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify(data)
+
+                    });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        result.message || "Failed to save vaccination"
+                    );
+                }
+
+                document
+                    .getElementById("vaccinationForm")
+                    .reset();
+
+                showMessage(
+                    "vaccinationMessage",
+                    "Vaccination saved successfully!",
+                    "success"
+                );
+
+                await loadData();
+
+            } catch (error) {
+
+                showMessage(
+                    "vaccinationMessage",
+                    error.message,
+                    "error"
+                );
+            }
+
+        });
+
+
+    /* =========================
+       REMINDERS
+    ========================= */
+
+    function renderReminders() {
+
+        const container =
+            document.getElementById("reminderList");
+
+        container.innerHTML = "";
+
+        if (dueVaccinations.length === 0) {
+
+            container.innerHTML =
+                '<div class="empty">No vaccinations due within the next 7 days.</div>';
+
+            return;
+        }
+
+        dueVaccinations.forEach(record => {
+
+            container.innerHTML += `
+
+                <div class="reminder">
+
+                    <strong>
+                        ${record.pet?.name || "Unknown Pet"}
+                    </strong>
+
+                    <br><br>
+
+                    Species:
+                    ${record.pet?.species || "-"}
+
+                    <br>
+
+                    Vaccine:
+                    ${record.vaccineType?.name || "-"}
+
+                    <br>
+
+                    Given Date:
+                    ${record.givenDate}
+
+                    <br>
+
+                    <strong>
+                        Next Due:
+                        ${record.nextDueDate}
+                    </strong>
+
+                </div>
+
+            `;
+        });
+    }
+
+
+    /* =========================
+       DROPDOWNS
+    ========================= */
+
+    function populateDropdowns() {
+
+        const ownerSelect =
+            document.getElementById("petOwner");
+
+        ownerSelect.innerHTML =
+            '<option value="">Select Owner</option>';
+
+        owners.forEach(owner => {
+
+            ownerSelect.innerHTML += `
+
+                <option value="${owner.id}">
+                    ${owner.name}
+                </option>
+
+            `;
+        });
+
+
+        const petSelect =
+            document.getElementById("vaccinationPet");
+
+        petSelect.innerHTML =
+            '<option value="">Select Pet</option>';
+
+        pets.forEach(pet => {
+
+            petSelect.innerHTML += `
+
+                <option value="${pet.id}">
+                    ${pet.name} - ${pet.species}
+                </option>
+
+            `;
+        });
+
+
+        const vaccineSelect =
+            document.getElementById("vaccinationVaccine");
+
+        vaccineSelect.innerHTML =
+            '<option value="">Select Vaccine</option>';
+
+        vaccines.forEach(vaccine => {
+
+            vaccineSelect.innerHTML += `
+
+                <option value="${vaccine.id}">
+                    ${vaccine.name}
+                </option>
+
+            `;
+        });
+
+    }
+
+
+    /* =========================
+       START APPLICATION
+    ========================= */
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        loadData();
+
+    });
+
+</script>
+
+</body>
+</html>
